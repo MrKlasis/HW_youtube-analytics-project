@@ -1,68 +1,44 @@
 import json
 import os
 
+from googleapiclient.discovery import build
+
 
 class Channel:
     """Класс для ютуб-канала"""
-    url_str = 'https://www.youtube.com/channel/'
-    api_key: str = os.getenv('YT_API_KEY')
+    api_key: str = os.getenv('YOUTUBE_API')
+    youtube = build('youtube', 'v3', developerKey=api_key)
 
-    def __init__(self, channel_id):
-        self._channel_id = channel_id
+    def __init__(self, channel_id: str) -> None:
+        """Экземпляр инициализируется id канала. Дальше все данные будут подтягиваться по API."""
+        self.channel_id = channel_id
+        self.channel = self.youtube.channels().list(id=self.channel_id, part='snippet,statistics').execute()
+        self.title = self.channel['items'][0]['snippet']['title']
+        self.description = self.channel['items'][0]['snippet']['description']
+        self.url = f"https://www.youtube.com/channel/{self.channel_id}"
+        self.subscriber_count = self.channel['items'][0]['statistics']['subscriberCount']
+        self.video_count = self.channel['items'][0]['statistics']['videoCount']
+        self.view_count = self.channel['items'][0]['statistics']['viewCount']
 
-    @property
-    def title(self):
-        # Возвращает название канала
-        return self._get_channel_title()
+    def print_info(self) -> None:
+        """Выводит в консоль информацию о канале."""
+        print(json.dumps(self.channel, indent=2, ensure_ascii=False))
 
-    @property
-    def video_count(self):
-        # Возвращает количество видео на канале
-        return self._get_video_count()
+    @classmethod
+    def get_service(cls):
+        api_key: str = os.getenv('YOUTUBE_API')
+        youtube = build('youtube', 'v3', developerKey=api_key)
+        return youtube
 
-    @property
-    def url(self):
-        # Возвращает URL канала
-        return self._get_channel_url()
-
-    @property
-    def channel_id(self):
-        # Возвращает идентификатор канала
-        return self._channel_id
-
-    @staticmethod
-    def get_service():
-        # Возвращает объект для работы с API вне класса
-        return _get_api_service()
-
-    def to_json(self, filename):
-        # Сохраняет данные о канале в формате JSON в файл с указанным именем
-        channel_data = {
+    def to_json(self, file_json):
+        data = {
+            'channel_id': self.__channel_id,
             'title': self.title,
-            'video_count': self.video_count,
-            'url': self.url
-        }
-        with open(filename, 'w') as file:
-            json.dump(channel_data, file)
-
-    def _get_channel_title(self):
-        # Возвращает название канала
-        # Реализация зависит от того, как вы получаете данные о канале
-        return "MoscowPython"
-
-    def _get_video_count(self):
-        # Возвращает количество видео на канале
-        # Реализация зависит от того, как вы получаете данные о канале
-        return 685
-
-    def _get_channel_url(self):
-        # Возвращает URL канала
-        # Реализация зависит от того, как вы получаете данные о канале
-        return "https://www.youtube.com/channel/UC-OVMPlMA3-YCIeg4z5z23A"
-
-    def _set_channel_id(self, new_channel_id):
-        # Метод для изменения идентификатора канала
-        # В данном случае, мы не разрешаем изменение идентификатора
-        raise AttributeError("property 'channel_id' of 'Channel' object has no setter")
-
-    channel_id = property(channel_id.fget, _set_channel_id)
+            'description': self.description,
+            'url': self.url,
+            'subscriberCount': self.subscriber_count,
+            'videoCount': self.video_count,
+            'viewCount': self.view_count
+                }
+        with open(file_json, 'w', encoding="utf-8") as file:
+            file.write(json.dumps(data))
