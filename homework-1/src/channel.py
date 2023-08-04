@@ -4,7 +4,7 @@ import os
 
 class Channel:
      """Класс для ютуб-канала"""
-    api_key: str = os.getenv('YOUTUBE_API')
+    api_key: str = os.getenv('YT_API_KEY')
     youtube = build('youtube', 'v3', developerKey=api_key)
 
     def __init__(self, channel_id: str) -> None:
