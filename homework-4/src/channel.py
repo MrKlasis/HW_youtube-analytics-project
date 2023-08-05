@@ -5,7 +5,7 @@ from googleapiclient.discovery import build
 
 
 class Channel:
-     """Класс для ютуб-канала"""
+    """Класс для ютуб-канала"""
     api_key: str = os.getenv('YT_API_KEY')
     youtube = build('youtube', 'v3', developerKey=api_key)
 
@@ -57,7 +57,7 @@ class Channel:
 
     @classmethod
     def get_service(cls):
-        api_key: str = os.getenv('YT_API_KEY')
+        api_key: str = os.getenv('YOUTUBE_API')
         youtube = build('youtube', 'v3', developerKey=api_key)
         return youtube
 
